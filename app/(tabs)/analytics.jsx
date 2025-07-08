@@ -147,6 +147,7 @@ export default function Analytics() {
               </View>
             ))}
           </View>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -184,6 +185,7 @@ export default function Analytics() {
             )}
           </View>
         </View>
+          <View>
       </View>
     </ScrollView>
   );

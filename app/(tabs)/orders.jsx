@@ -112,6 +112,7 @@ export default function Orders() {
             </Text>
           </View>
         ) : (
+          <View>
         {filteredOrders.map((order) => (
           <View key={order.id} style={styles.orderCard}>
             <View style={styles.orderHeader}>
@@ -139,6 +140,7 @@ export default function Orders() {
             </View>
           </View>
         ))}
+          </View>
         )}
       </ScrollView>
     </View>

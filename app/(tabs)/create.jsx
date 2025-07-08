@@ -99,6 +99,7 @@ export default function Products() {
             )}
           </View>
         ) : (
+          <View>
         {filteredProducts.map((product) => (
           <View key={product.id} style={styles.productCard}>
             <View style={styles.productHeader}>
@@ -125,6 +126,7 @@ export default function Products() {
             </View>
           </View>
         ))}
+          </View>
         )}
       </ScrollView>
     </View>

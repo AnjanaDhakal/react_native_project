@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useStoreContext } from './StoreContext';
+import { useStoreContext } from '../context/StoreContext';
 
 const AuthContext = createContext({});
 
