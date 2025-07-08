@@ -19,8 +19,11 @@ export function AuthProvider({ children }) {
         setIsLoading(false);
       } catch (error) {
         console.error('Session check failed:', error);
-      setIsLoading(false);
-    }, 1000);
+        setIsLoading(false);
+      }
+    };
+    
+    setTimeout(checkExistingSession, 1000);
   }, []);
 
   const login = async (email, password) => {
@@ -67,13 +70,6 @@ export function AuthProvider({ children }) {
     }}>
       {children}
     </AuthContext.Provider>
-          <Stack.Screen name="+not-found" />
-          <Stack.Screen name= "(main)/dashboard" />
-          <Stack.Screen name="(main)/scanner" />
-        </Stack>
-        <StatusBar style="auto" />
-      </AuthProvider>
-    </StoreProvider>
   );
 }
 
