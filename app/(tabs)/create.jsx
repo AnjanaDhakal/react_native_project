@@ -1,134 +1,325 @@
-import { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
-import { Search, Filter, Plus, Package } from 'lucide-react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  StyleSheet,
+  Alert,
+  RefreshControl,
+} from 'react-native';
+import {
+  Search,
+  Filter,
+  Plus,
+  CheckSquare,
+  Square,
+  Calendar,
+  AlertCircle,
+  Wifi,
+  WifiOff,
+} from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
-import { useProducts, useStoreContext } from '@/context/StoreContext';
+import { useTodos } from '@/context/TodoContext';
+import TodoCard from '@/components/TodoCard';
+import TodoForm from '@/components/TodoForm';
 
-export default function Products() {
+export default function TodoManager() {
   const [searchText, setSearchText] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all'); // all, pending, completed
+  const [filterPriority, setFilterPriority] = useState('all'); // all, high, medium, low
+  const [showForm, setShowForm] = useState(false);
+  const [editingTodo, setEditingTodo] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
+
   const { user } = useAuth();
-  const products = useProducts(user?.id);
-  const { storeHelpers } = useStoreContext();
+  const {
+    todos,
+    isLoading,
+    error,
+    createTodo,
+    updateTodo,
+    deleteTodo,
+    toggleTodoComplete,
+    refreshTodos,
+    clearError,
+  } = useTodos();
 
-  // Format products for display
-  const formattedProducts = products.map(product => ({
-    ...product,
-    price: `$${product.price.toFixed(2)}`
-  }));
+  // Filter todos based on search and filters
+  const filteredTodos = todos.filter(todo => {
+    const matchesSearch = todo.title.toLowerCase().includes(searchText.toLowerCase()) ||
+                         todo.description?.toLowerCase().includes(searchText.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'all' ||
+                         (filterStatus === 'pending' && !todo.completed) ||
+                         (filterStatus === 'completed' && todo.completed);
+    
+    const matchesPriority = filterPriority === 'all' || todo.priority === filterPriority;
 
-  // Filter products based on search
-  const filteredProducts = formattedProducts.filter(product =>
-    product.name.toLowerCase().includes(searchText.toLowerCase())
-  );
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
 
-  const handleAddProduct = async () => {
-    if (!user?.id) return;
+  // Sort todos: incomplete first, then by priority, then by due date
+  const sortedTodos = filteredTodos.sort((a, b) => {
+    if (a.completed !== b.completed) {
+      return a.completed ? 1 : -1;
+    }
+    
+    const priorityOrder = { high: 3, medium: 2, low: 1 };
+    if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+      return priorityOrder[b.priority] - priorityOrder[a.priority];
+    }
+    
+    if (a.dueDate && b.dueDate) {
+      return new Date(a.dueDate) - new Date(b.dueDate);
+    }
+    
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  const handleCreateTodo = async (todoData) => {
+    try {
+      await createTodo(todoData);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to create todo. Please try again.');
+    }
+  };
+
+  const handleUpdateTodo = async (todoData) => {
+    if (!editingTodo) return;
     
     try {
-      const newProduct = {
-        userId: user.id,
-        name: 'New Product',
-        price: 0.00,
-        stock: 0,
-        status: 'Out of Stock'
-      };
-      
-      await storeHelpers.createProduct(newProduct);
+      await updateTodo(editingTodo.id, todoData);
+      setEditingTodo(null);
     } catch (error) {
-      console.error('Failed to create product:', error);
+      Alert.alert('Error', 'Failed to update todo. Please try again.');
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'In Stock':
-        return { color: Colors.success, backgroundColor: Colors.background };
-      case 'Low Stock':
-        return { color: Colors.warning, backgroundColor: '#fef3c7' };
-      case 'Out of Stock':
-        return { color: Colors.error, backgroundColor: '#fee2e2' };
-      default:
-        return { color: Colors.text.secondary, backgroundColor: Colors.divider };
-    }
+  const handleDeleteTodo = (todoId) => {
+    Alert.alert(
+      'Delete Todo',
+      'Are you sure you want to delete this todo?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => deleteTodo(todoId),
+        },
+      ]
+    );
   };
+
+  const handleEditTodo = (todo) => {
+    setEditingTodo(todo);
+    setShowForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingTodo(null);
+  };
+
+  const getStatusCounts = () => {
+    const pending = todos.filter(todo => !todo.completed).length;
+    const completed = todos.filter(todo => todo.completed).length;
+    return { pending, completed, total: todos.length };
+  };
+
+  const statusCounts = getStatusCounts();
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Create</Text>
-        
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Todo Manager</Text>
+          <View style={styles.headerActions}>
+            {error && (
+              <TouchableOpacity onPress={clearError} style={styles.errorIndicator}>
+                <WifiOff size={20} color={Colors.error} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setShowForm(true)}
+            >
+              <Plus size={20} color="white" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Stats */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{statusCounts.total}</Text>
+            <Text style={styles.statLabel}>Total</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statNumber, { color: Colors.warning }]}>
+              {statusCounts.pending}
+            </Text>
+            <Text style={styles.statLabel}>Pending</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={[styles.statNumber, { color: Colors.success }]}>
+              {statusCounts.completed}
+            </Text>
+            <Text style={styles.statLabel}>Completed</Text>
+          </View>
+        </View>
+
+        {/* Search and Filters */}
         <View style={styles.searchRow}>
           <View style={styles.searchContainer}>
             <Search style={styles.searchIcon} size={20} color={Colors.text.secondary} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search products..."
+              placeholder="Search todos..."
               placeholderTextColor={Colors.text.secondary}
               value={searchText}
               onChangeText={setSearchText}
             />
           </View>
-          <TouchableOpacity style={styles.filterButton}>
-            <Filter size={20} color={Colors.text.secondary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddProduct}>
-            <Plus size={20} color="white" />
+          <TouchableOpacity
+            style={[styles.filterButton, showFilters && styles.filterButtonActive]}
+            onPress={() => setShowFilters(!showFilters)}
+          >
+            <Filter size={20} color={showFilters ? Colors.primary : Colors.text.secondary} />
           </TouchableOpacity>
         </View>
+
+        {/* Filter Options */}
+        {showFilters && (
+          <View style={styles.filtersContainer}>
+            <View style={styles.filterGroup}>
+              <Text style={styles.filterLabel}>Status:</Text>
+              <View style={styles.filterOptions}>
+                {[
+                  { key: 'all', label: 'All' },
+                  { key: 'pending', label: 'Pending' },
+                  { key: 'completed', label: 'Completed' },
+                ].map((option) => (
+                  <TouchableOpacity
+                    key={option.key}
+                    style={[
+                      styles.filterOption,
+                      filterStatus === option.key && styles.filterOptionActive,
+                    ]}
+                    onPress={() => setFilterStatus(option.key)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterOptionText,
+                        filterStatus === option.key && styles.filterOptionTextActive,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.filterGroup}>
+              <Text style={styles.filterLabel}>Priority:</Text>
+              <View style={styles.filterOptions}>
+                {[
+                  { key: 'all', label: 'All' },
+                  { key: 'high', label: 'High' },
+                  { key: 'medium', label: 'Medium' },
+                  { key: 'low', label: 'Low' },
+                ].map((option) => (
+                  <TouchableOpacity
+                    key={option.key}
+                    style={[
+                      styles.filterOption,
+                      filterPriority === option.key && styles.filterOptionActive,
+                    ]}
+                    onPress={() => setFilterPriority(option.key)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterOptionText,
+                        filterPriority === option.key && styles.filterOptionTextActive,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        )}
       </View>
 
-      <ScrollView style={styles.content}>
-        {filteredProducts.length === 0 ? (
+      {/* Error Message */}
+      {error && (
+        <View style={styles.errorContainer}>
+          <AlertCircle size={16} color={Colors.error} />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={clearError}>
+            <Text style={styles.errorDismiss}>Dismiss</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Todo List */}
+      <ScrollView
+        style={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={isLoading} onRefresh={refreshTodos} />
+        }
+      >
+        {sortedTodos.length === 0 ? (
           <View style={styles.emptyState}>
-            <Package size={48} color={Colors.text.light} />
+            <CheckSquare size={48} color={Colors.text.light} />
             <Text style={styles.emptyStateText}>
-              {searchText ? 'No products found' : 'No products yet'}
+              {searchText || filterStatus !== 'all' || filterPriority !== 'all'
+                ? 'No todos match your filters'
+                : 'No todos yet'}
             </Text>
             <Text style={styles.emptyStateSubtext}>
-              {searchText 
-                ? `No products match "${searchText}"`
-                : 'Start by adding your first product'
-              }
+              {searchText || filterStatus !== 'all' || filterPriority !== 'all'
+                ? 'Try adjusting your search or filters'
+                : 'Create your first todo to get started'}
             </Text>
-            {!searchText && (
-              <TouchableOpacity style={styles.addProductButton} onPress={handleAddProduct}>
+            {!searchText && filterStatus === 'all' && filterPriority === 'all' && (
+              <TouchableOpacity
+                style={styles.emptyStateButton}
+                onPress={() => setShowForm(true)}
+              >
                 <Plus size={20} color="white" />
-                <Text style={styles.addProductButtonText}>Add Product</Text>
+                <Text style={styles.emptyStateButtonText}>Create Todo</Text>
               </TouchableOpacity>
             )}
           </View>
         ) : (
-          <View>
-        {filteredProducts.map((product) => (
-          <View key={product.id} style={styles.productCard}>
-            <View style={styles.productHeader}>
-              <View style={styles.productInfo}>
-                <View style={styles.iconContainer}>
-                  <Package size={20} color={Colors.primary} />
-                </View>
-                <View style={styles.productDetails}>
-                  <Text style={styles.productName}>{product.name}</Text>
-                  <Text style={styles.productPrice}>{product.price}</Text>
-                </View>
-              </View>
-              <View style={[styles.statusBadge, getStatusColor(product.status)]}>
-                <Text style={[styles.statusText, { color: getStatusColor(product.status).color }]}>
-                  {product.status}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.productFooter}>
-              <Text style={styles.stockText}>Stock: {product.stock} units</Text>
-              <TouchableOpacity style={styles.editButton}>
-                <Text style={styles.editButtonText}>Edit</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
+          <View style={styles.todoList}>
+            {sortedTodos.map((todo) => (
+              <TodoCard
+                key={todo.id}
+                todo={todo}
+                onToggleComplete={toggleTodoComplete}
+                onEdit={handleEditTodo}
+                onDelete={handleDeleteTodo}
+              />
+            ))}
           </View>
         )}
       </ScrollView>
+
+      {/* Todo Form Modal */}
+      <TodoForm
+        visible={showForm}
+        onClose={handleCloseForm}
+        onSubmit={editingTodo ? handleUpdateTodo : handleCreateTodo}
+        initialTodo={editingTodo}
+      />
     </View>
   );
 }
@@ -142,16 +333,59 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 48,
     paddingBottom: 16,
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: Colors.primary,
-    marginBottom: 24,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  errorIndicator: {
+    marginRight: 12,
+    padding: 4,
+  },
+  addButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    padding: 12,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+    paddingVertical: 16,
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: Colors.text.secondary,
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 16,
   },
   searchContainer: {
     flex: 1,
@@ -165,7 +399,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   searchInput: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 12,
@@ -176,90 +410,80 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
   filterButton: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.background,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 12,
     padding: 12,
-    marginRight: 12,
   },
-  addButton: {
-    backgroundColor: Colors.primary,
+  filterButtonActive: {
+    backgroundColor: Colors.primary + '20',
+    borderColor: Colors.primary,
+  },
+  filtersContainer: {
+    backgroundColor: Colors.background,
     borderRadius: 12,
-    padding: 12,
+    padding: 16,
+    marginBottom: 8,
+  },
+  filterGroup: {
+    marginBottom: 16,
+  },
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+  filterOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  filterOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  filterOptionActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  filterOptionText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+  },
+  filterOptionTextActive: {
+    color: 'white',
+    fontWeight: '500',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.error + '20',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginHorizontal: 24,
+    marginBottom: 16,
+    borderRadius: 8,
+  },
+  errorText: {
+    flex: 1,
+    marginLeft: 8,
+    color: Colors.error,
+    fontSize: 14,
+  },
+  errorDismiss: {
+    color: Colors.error,
+    fontWeight: '500',
+    fontSize: 14,
   },
   content: {
     flex: 1,
     paddingHorizontal: 24,
-  },
-  productCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  productHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  productInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconContainer: {
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    padding: 8,
-    marginRight: 12,
-  },
-  productDetails: {
-    flex: 1,
-  },
-  productName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: 4,
-  },
-  productPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.primary,
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  productFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  stockText: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  editButton: {
-    backgroundColor: Colors.background,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  editButtonText: {
-    color: Colors.primary,
-    fontWeight: '500',
   },
   emptyState: {
     alignItems: 'center',
@@ -279,7 +503,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
   },
-  addProductButton: {
+  emptyStateButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.primary,
@@ -287,9 +511,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
   },
-  addProductButtonText: {
+  emptyStateButtonText: {
     color: 'white',
     fontWeight: '600',
     marginLeft: 8,
+  },
+  todoList: {
+    paddingVertical: 16,
   },
 });
