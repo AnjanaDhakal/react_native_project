@@ -1,4 +1,5 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Calendar } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
@@ -92,25 +93,23 @@ export default function Analytics() {
   const timeframes = ['7 Days', '30 Days', '3 Months', '1 Year'];
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Analytics</Text>
+    <ScrollView className="flex-1 bg-green-50">
+      <View className="px-6 pt-12 pb-6">
+        <Text className="text-3xl font-bold text-green-800 mb-6">Analytics</Text>
         
-        <View style={styles.timeframeContainer}>
+        <View className="mb-6">
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.timeframeRow}>
+            <View className="flex-row">
               {timeframes.map((timeframe, index) => (
                 <TouchableOpacity
                   key={index}
-                  style={[
-                    styles.timeframeButton,
-                    index === 1 ? styles.activeTimeframe : styles.inactiveTimeframe
-                  ]}
+                  className={`px-4 py-2 rounded-2xl mr-3 ${
+                    index === 1 ? 'bg-green-600' : 'bg-white border border-gray-300'
+                  }`}
                 >
-                  <Text style={[
-                    styles.timeframeText,
-                    index === 1 ? styles.activeTimeframeText : styles.inactiveTimeframeText
-                  ]}>
+                  <Text className={`font-medium ${
+                    index === 1 ? 'text-white' : 'text-gray-600'
+                  }`}>
                     {timeframe}
                   </Text>
                 </TouchableOpacity>
@@ -119,254 +118,70 @@ export default function Analytics() {
           </ScrollView>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Key Metrics</Text>
-          <View style={styles.metricsGrid}>
+        <View className="mb-8">
+          <Text className="text-xl font-semibold text-gray-800 mb-4">Key Metrics</Text>
+          <View className="flex-row flex-wrap justify-between">
             {metrics.map((metric, index) => (
-              <View key={index} style={styles.metricCard}>
-                <View style={styles.metricHeader}>
-                  <View style={styles.iconContainer}>
+              <View key={index} className="bg-white rounded-2xl p-4 mb-4 w-[48%] shadow-sm">
+                <View className="flex-row justify-between items-start mb-3">
+                  <View className="bg-green-50 rounded-xl p-2">
                     <metric.icon size={20} color={Colors.primary} />
                   </View>
-                  <View style={styles.trendContainer}>
+                  <View className="flex-row items-center">
                     {metric.trend === 'up' ? (
                       <TrendingUp size={16} color={Colors.success} />
                     ) : (
                       <TrendingDown size={16} color={Colors.error} />
                     )}
-                    <Text style={[
-                      styles.changeText,
-                      { color: metric.trend === 'up' ? Colors.success : Colors.error }
-                    ]}>
+                    <Text className={`ml-1 text-sm font-medium ${
+                      metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                    }`}>
                       {metric.change}
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.metricValue}>{metric.value}</Text>
-                <Text style={styles.metricLabel}>{metric.label}</Text>
+                <Text className="text-2xl font-bold text-gray-800 mb-1">{metric.value}</Text>
+                <Text className="text-sm text-gray-600">{metric.label}</Text>
               </View>
             ))}
           </View>
-          </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Revenue Chart</Text>
-          <View style={styles.chartCard}>
-            <View style={styles.chartPlaceholder}>
-              <Calendar size={48} color={Colors.text.light} />
-              <Text style={styles.chartPlaceholderText}>Chart visualization</Text>
-              <Text style={styles.chartPlaceholderSubtext}>Coming soon</Text>
+        <View className="mb-8">
+          <Text className="text-xl font-semibold text-gray-800 mb-4">Revenue Chart</Text>
+          <View className="bg-white rounded-2xl p-4 shadow-sm">
+            <View className="h-48 justify-center items-center border-2 border-dashed border-gray-300 rounded-xl">
+              <Calendar size={48} color="#9ca3af" />
+              <Text className="text-gray-500 mt-2 text-base">Chart visualization</Text>
+              <Text className="text-gray-400 text-sm">Coming soon</Text>
             </View>
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Top Selling Products</Text>
-          <View style={styles.productsCard}>
+        <View className="mb-6">
+          <Text className="text-xl font-semibold text-gray-800 mb-4">Top Selling Products</Text>
+          <View className="bg-white rounded-2xl p-4 shadow-sm">
             {topProducts.length === 0 ? (
-              <View style={styles.emptyProducts}>
-                <Text style={styles.emptyProductsText}>No sales data available</Text>
-                <Text style={styles.emptyProductsSubtext}>Complete some orders to see top products</Text>
+              <View className="items-center py-8">
+                <Text className="text-base font-semibold text-gray-800 mb-1">No sales data available</Text>
+                <Text className="text-sm text-gray-600">Complete some orders to see top products</Text>
               </View>
             ) : (
-            topProducts.map((product, index) => (
-              <View key={index} style={[
-                styles.productItem,
-                index < topProducts.length - 1 && styles.productItemBorder
-              ]}>
-                <View>
-                  <Text style={styles.productName}>{product.name}</Text>
-                  <Text style={styles.productSales}>{product.sales} sold</Text>
+              topProducts.map((product, index) => (
+                <View key={index} className={`flex-row justify-between items-center py-3 ${
+                  index < topProducts.length - 1 ? 'border-b border-gray-100' : ''
+                }`}>
+                  <View>
+                    <Text className="text-base font-semibold text-gray-800 mb-1">{product.name}</Text>
+                    <Text className="text-sm text-gray-600">{product.sales} sold</Text>
+                  </View>
+                  <Text className="text-base font-bold text-green-600">{product.revenue}</Text>
                 </View>
-                <Text style={styles.productRevenue}>{product.revenue}</Text>
-              </View>
-            ))
+              ))
             )}
           </View>
         </View>
-          <View>
       </View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: 48,
-    paddingBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginBottom: 24,
-  },
-  timeframeContainer: {
-    marginBottom: 24,
-  },
-  timeframeRow: {
-    flexDirection: 'row',
-  },
-  timeframeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  activeTimeframe: {
-    backgroundColor: Colors.primary,
-  },
-  inactiveTimeframe: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  timeframeText: {
-    fontWeight: '500',
-  },
-  activeTimeframeText: {
-    color: 'white',
-  },
-  inactiveTimeframeText: {
-    color: Colors.text.secondary,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: 16,
-  },
-  metricsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  metricCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    width: '48%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  metricHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  iconContainer: {
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    padding: 8,
-  },
-  trendContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  changeText: {
-    marginLeft: 4,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  metricValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text.primary,
-    marginBottom: 4,
-  },
-  metricLabel: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  chartCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  chartPlaceholder: {
-    height: 192,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: Colors.border,
-    borderRadius: 12,
-  },
-  chartPlaceholderText: {
-    color: Colors.text.light,
-    marginTop: 8,
-    fontSize: 16,
-  },
-  chartPlaceholderSubtext: {
-    color: Colors.text.light,
-    fontSize: 14,
-  },
-  productsCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  productItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  productItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.divider,
-  },
-  productName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: 4,
-  },
-  productSales: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  productRevenue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.primary,
-  },
-  emptyProducts: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
-  emptyProductsText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: 4,
-  },
-  emptyProductsSubtext: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-  },
-});

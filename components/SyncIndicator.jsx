@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Database } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { useStoreContext } from '@/context/StoreContext';
@@ -12,27 +12,9 @@ export default function SyncIndicator() {
   }
 
   return (
-    <View style={styles.container}>
+    <View className="flex-row items-center px-2 py-1 rounded-xl bg-green-50">
       <Database size={12} color={Colors.success} />
-      <Text style={styles.text}>Local</Text>
+      <Text className="text-xs font-medium ml-1 text-green-600">Local</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: Colors.background,
-    alignSelf: 'flex-start',
-  },
-  text: {
-    fontSize: 10,
-    fontWeight: '500',
-    marginLeft: 4,
-    color: Colors.success,
-  },
-});

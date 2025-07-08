@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  StyleSheet,
   Alert,
   RefreshControl,
 } from 'react-native';
@@ -122,19 +121,19 @@ export default function TodoManager() {
   const statusCounts = getStatusCounts();
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-green-50">
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>Todo Manager</Text>
-          <View style={styles.headerActions}>
+      <View className="px-6 pt-12 pb-4 bg-white border-b border-gray-200">
+        <View className="flex-row justify-between items-center mb-5">
+          <Text className="text-3xl font-bold text-green-800">Todo Manager</Text>
+          <View className="flex-row items-center">
             {error && (
-              <TouchableOpacity onPress={clearError} style={styles.errorIndicator}>
+              <TouchableOpacity onPress={clearError} className="mr-3 p-1">
                 <WifiOff size={20} color={Colors.error} />
               </TouchableOpacity>
             )}
             <TouchableOpacity
-              style={styles.addButton}
+              className="bg-green-600 rounded-xl p-3"
               onPress={() => setShowForm(true)}
             >
               <Plus size={20} color="white" />
@@ -143,51 +142,47 @@ export default function TodoManager() {
         </View>
 
         {/* Stats */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{statusCounts.total}</Text>
-            <Text style={styles.statLabel}>Total</Text>
+        <View className="flex-row justify-around mb-5 py-4 bg-green-50 rounded-xl">
+          <View className="items-center">
+            <Text className="text-2xl font-bold text-green-800 mb-1">{statusCounts.total}</Text>
+            <Text className="text-sm text-gray-600">Total</Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: Colors.warning }]}>
-              {statusCounts.pending}
-            </Text>
-            <Text style={styles.statLabel}>Pending</Text>
+          <View className="items-center">
+            <Text className="text-2xl font-bold text-orange-500 mb-1">{statusCounts.pending}</Text>
+            <Text className="text-sm text-gray-600">Pending</Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: Colors.success }]}>
-              {statusCounts.completed}
-            </Text>
-            <Text style={styles.statLabel}>Completed</Text>
+          <View className="items-center">
+            <Text className="text-2xl font-bold text-green-600 mb-1">{statusCounts.completed}</Text>
+            <Text className="text-sm text-gray-600">Completed</Text>
           </View>
         </View>
 
         {/* Search and Filters */}
-        <View style={styles.searchRow}>
-          <View style={styles.searchContainer}>
-            <Search style={styles.searchIcon} size={20} color={Colors.text.secondary} />
+        <View className="flex-row items-center mb-4">
+          <View className="flex-1 relative mr-3">
+            <Search className="absolute left-3 top-3 z-10" size={20} color="#6b7280" />
             <TextInput
-              style={styles.searchInput}
+              className="bg-green-50 border border-gray-300 rounded-xl pl-11 pr-4 py-3 text-base text-gray-800"
               placeholder="Search todos..."
-              placeholderTextColor={Colors.text.secondary}
+              placeholderTextColor="#6b7280"
               value={searchText}
               onChangeText={setSearchText}
             />
           </View>
           <TouchableOpacity
-            style={[styles.filterButton, showFilters && styles.filterButtonActive]}
+            className={`bg-green-50 border rounded-xl p-3 ${showFilters ? 'border-green-600 bg-green-100' : 'border-gray-300'}`}
             onPress={() => setShowFilters(!showFilters)}
           >
-            <Filter size={20} color={showFilters ? Colors.primary : Colors.text.secondary} />
+            <Filter size={20} color={showFilters ? Colors.primary : '#6b7280'} />
           </TouchableOpacity>
         </View>
 
         {/* Filter Options */}
         {showFilters && (
-          <View style={styles.filtersContainer}>
-            <View style={styles.filterGroup}>
-              <Text style={styles.filterLabel}>Status:</Text>
-              <View style={styles.filterOptions}>
+          <View className="bg-green-50 rounded-xl p-4 mb-2">
+            <View className="mb-4">
+              <Text className="text-sm font-semibold text-gray-800 mb-2">Status:</Text>
+              <View className="flex-row flex-wrap gap-2">
                 {[
                   { key: 'all', label: 'All' },
                   { key: 'pending', label: 'Pending' },
@@ -195,18 +190,16 @@ export default function TodoManager() {
                 ].map((option) => (
                   <TouchableOpacity
                     key={option.key}
-                    style={[
-                      styles.filterOption,
-                      filterStatus === option.key && styles.filterOptionActive,
-                    ]}
+                    className={`px-3 py-1.5 rounded-2xl border ${
+                      filterStatus === option.key 
+                        ? 'bg-green-600 border-green-600' 
+                        : 'bg-white border-gray-300'
+                    }`}
                     onPress={() => setFilterStatus(option.key)}
                   >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        filterStatus === option.key && styles.filterOptionTextActive,
-                      ]}
-                    >
+                    <Text className={`text-sm ${
+                      filterStatus === option.key ? 'text-white font-medium' : 'text-gray-600'
+                    }`}>
                       {option.label}
                     </Text>
                   </TouchableOpacity>
@@ -214,9 +207,9 @@ export default function TodoManager() {
               </View>
             </View>
 
-            <View style={styles.filterGroup}>
-              <Text style={styles.filterLabel}>Priority:</Text>
-              <View style={styles.filterOptions}>
+            <View>
+              <Text className="text-sm font-semibold text-gray-800 mb-2">Priority:</Text>
+              <View className="flex-row flex-wrap gap-2">
                 {[
                   { key: 'all', label: 'All' },
                   { key: 'high', label: 'High' },
@@ -225,18 +218,16 @@ export default function TodoManager() {
                 ].map((option) => (
                   <TouchableOpacity
                     key={option.key}
-                    style={[
-                      styles.filterOption,
-                      filterPriority === option.key && styles.filterOptionActive,
-                    ]}
+                    className={`px-3 py-1.5 rounded-2xl border ${
+                      filterPriority === option.key 
+                        ? 'bg-green-600 border-green-600' 
+                        : 'bg-white border-gray-300'
+                    }`}
                     onPress={() => setFilterPriority(option.key)}
                   >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        filterPriority === option.key && styles.filterOptionTextActive,
-                      ]}
-                    >
+                    <Text className={`text-sm ${
+                      filterPriority === option.key ? 'text-white font-medium' : 'text-gray-600'
+                    }`}>
                       {option.label}
                     </Text>
                   </TouchableOpacity>
@@ -249,47 +240,47 @@ export default function TodoManager() {
 
       {/* Error Message */}
       {error && (
-        <View style={styles.errorContainer}>
+        <View className="flex-row items-center bg-red-100 px-4 py-3 mx-6 mb-4 rounded-lg">
           <AlertCircle size={16} color={Colors.error} />
-          <Text style={styles.errorText}>{error}</Text>
+          <Text className="flex-1 ml-2 text-red-600 text-sm">{error}</Text>
           <TouchableOpacity onPress={clearError}>
-            <Text style={styles.errorDismiss}>Dismiss</Text>
+            <Text className="text-red-600 font-medium text-sm">Dismiss</Text>
           </TouchableOpacity>
         </View>
       )}
 
       {/* Todo List */}
       <ScrollView
-        style={styles.content}
+        className="flex-1 px-6"
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={refreshTodos} />
         }
       >
         {sortedTodos.length === 0 ? (
-          <View style={styles.emptyState}>
-            <CheckSquare size={48} color={Colors.text.light} />
-            <Text style={styles.emptyStateText}>
+          <View className="items-center justify-center py-16">
+            <CheckSquare size={48} color="#9ca3af" />
+            <Text className="text-lg font-semibold text-gray-800 mt-4 mb-2">
               {searchText || filterStatus !== 'all' || filterPriority !== 'all'
                 ? 'No todos match your filters'
                 : 'No todos yet'}
             </Text>
-            <Text style={styles.emptyStateSubtext}>
+            <Text className="text-sm text-gray-600 text-center mb-6">
               {searchText || filterStatus !== 'all' || filterPriority !== 'all'
                 ? 'Try adjusting your search or filters'
                 : 'Create your first todo to get started'}
             </Text>
             {!searchText && filterStatus === 'all' && filterPriority === 'all' && (
               <TouchableOpacity
-                style={styles.emptyStateButton}
+                className="flex-row items-center bg-green-600 px-6 py-3 rounded-xl"
                 onPress={() => setShowForm(true)}
               >
                 <Plus size={20} color="white" />
-                <Text style={styles.emptyStateButtonText}>Create Todo</Text>
+                <Text className="text-white font-semibold ml-2">Create Todo</Text>
               </TouchableOpacity>
             )}
           </View>
         ) : (
-          <View style={styles.todoList}>
+          <View className="py-4">
             {sortedTodos.map((todo) => (
               <TodoCard
                 key={todo.id}
@@ -313,200 +304,3 @@ export default function TodoManager() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 48,
-    paddingBottom: 16,
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.primary,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  errorIndicator: {
-    marginRight: 12,
-    padding: 4,
-  },
-  addButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    padding: 12,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
-    paddingVertical: 16,
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  searchContainer: {
-    flex: 1,
-    position: 'relative',
-    marginRight: 12,
-  },
-  searchIcon: {
-    position: 'absolute',
-    left: 12,
-    top: 12,
-    zIndex: 1,
-  },
-  searchInput: {
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    paddingLeft: 44,
-    paddingRight: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: Colors.text.primary,
-  },
-  filterButton: {
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    padding: 12,
-  },
-  filterButtonActive: {
-    backgroundColor: Colors.primary + '20',
-    borderColor: Colors.primary,
-  },
-  filtersContainer: {
-    backgroundColor: Colors.background,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-  },
-  filterGroup: {
-    marginBottom: 16,
-  },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: 8,
-  },
-  filterOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  filterOption: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  filterOptionActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  filterOptionText: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-  },
-  filterOptionTextActive: {
-    color: 'white',
-    fontWeight: '500',
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.error + '20',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginHorizontal: 24,
-    marginBottom: 16,
-    borderRadius: 8,
-  },
-  errorText: {
-    flex: 1,
-    marginLeft: 8,
-    color: Colors.error,
-    fontSize: 14,
-  },
-  errorDismiss: {
-    color: Colors.error,
-    fontWeight: '500',
-    fontSize: 14,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 64,
-  },
-  emptyStateText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyStateSubtext: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  emptyStateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  emptyStateButtonText: {
-    color: 'white',
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  todoList: {
-    paddingVertical: 16,
-  },
-});

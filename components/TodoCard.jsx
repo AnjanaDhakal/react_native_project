@@ -1,34 +1,34 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { CircleCheck as CheckCircle, Circle, Clock, TriangleAlert as AlertTriangle, CreditCard as Edit3, Trash2 } from 'lucide-react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { CircleCheck as CheckCircle, Circle, Clock, TriangleAlert as AlertTriangle, Edit3, Trash2 } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 
 export default function TodoCard({ todo, onToggleComplete, onEdit, onDelete }) {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'high':
-        return Colors.error;
+        return 'text-red-600 bg-red-100';
       case 'medium':
-        return Colors.warning;
+        return 'text-orange-600 bg-orange-100';
       case 'low':
-        return Colors.success;
+        return 'text-green-600 bg-green-100';
       default:
-        return Colors.text.secondary;
+        return 'text-gray-600 bg-gray-100';
     }
   };
 
   const getCategoryColor = (category) => {
     switch (category) {
       case 'inventory':
-        return '#3b82f6';
+        return 'text-blue-600 bg-blue-100';
       case 'marketing':
-        return '#8b5cf6';
+        return 'text-purple-600 bg-purple-100';
       case 'orders':
-        return '#10b981';
+        return 'text-green-600 bg-green-100';
       case 'finance':
-        return '#f59e0b';
+        return 'text-yellow-600 bg-yellow-100';
       default:
-        return Colors.primary;
+        return 'text-green-600 bg-green-100';
     }
   };
 
@@ -53,35 +53,34 @@ export default function TodoCard({ todo, onToggleComplete, onEdit, onDelete }) {
   };
 
   return (
-    <View style={[styles.container, todo.completed && styles.completedContainer]}>
+    <View className={`bg-white rounded-2xl p-4 mb-3 flex-row shadow-sm ${todo.completed ? 'opacity-70' : ''}`}>
       <TouchableOpacity
-        style={styles.checkboxContainer}
+        className="mr-3 pt-0.5"
         onPress={() => onToggleComplete(todo.id)}
       >
         {todo.completed ? (
           <CheckCircle size={24} color={Colors.success} />
         ) : (
-          <Circle size={24} color={Colors.text.secondary} />
+          <Circle size={24} color="#6b7280" />
         )}
       </TouchableOpacity>
 
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={[
-            styles.title,
-            todo.completed && styles.completedText
-          ]}>
+      <View className="flex-1">
+        <View className="flex-row justify-between items-start mb-2">
+          <Text className={`text-base font-semibold flex-1 mr-2 ${
+            todo.completed ? 'line-through text-gray-500' : 'text-gray-800'
+          }`}>
             {todo.title}
           </Text>
-          <View style={styles.actions}>
+          <View className="flex-row">
             <TouchableOpacity
-              style={styles.actionButton}
+              className="p-1 ml-2"
               onPress={() => onEdit(todo)}
             >
-              <Edit3 size={16} color={Colors.text.secondary} />
+              <Edit3 size={16} color="#6b7280" />
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.actionButton}
+              className="p-1 ml-2"
               onPress={() => onDelete(todo.id)}
             >
               <Trash2 size={16} color={Colors.error} />
@@ -90,37 +89,24 @@ export default function TodoCard({ todo, onToggleComplete, onEdit, onDelete }) {
         </View>
 
         {todo.description && (
-          <Text style={[
-            styles.description,
-            todo.completed && styles.completedText
-          ]}>
+          <Text className={`text-sm mb-3 leading-5 ${
+            todo.completed ? 'line-through text-gray-500' : 'text-gray-600'
+          }`}>
             {todo.description}
           </Text>
         )}
 
-        <View style={styles.footer}>
-          <View style={styles.tags}>
-            <View style={[
-              styles.priorityTag,
-              { backgroundColor: getPriorityColor(todo.priority) + '20' }
-            ]}>
-              <Text style={[
-                styles.priorityText,
-                { color: getPriorityColor(todo.priority) }
-              ]}>
+        <View className="flex-row justify-between items-center">
+          <View className="flex-row flex-1">
+            <View className={`px-2 py-1 rounded-xl mr-2 ${getPriorityColor(todo.priority)}`}>
+              <Text className={`text-xs font-medium capitalize ${getPriorityColor(todo.priority).split(' ')[0]}`}>
                 {todo.priority}
               </Text>
             </View>
 
             {todo.category && (
-              <View style={[
-                styles.categoryTag,
-                { backgroundColor: getCategoryColor(todo.category) + '20' }
-              ]}>
-                <Text style={[
-                  styles.categoryText,
-                  { color: getCategoryColor(todo.category) }
-                ]}>
+              <View className={`px-2 py-1 rounded-xl ${getCategoryColor(todo.category)}`}>
+                <Text className={`text-xs font-medium capitalize ${getCategoryColor(todo.category).split(' ')[0]}`}>
                   {todo.category}
                 </Text>
               </View>
@@ -128,13 +114,12 @@ export default function TodoCard({ todo, onToggleComplete, onEdit, onDelete }) {
           </View>
 
           {todo.dueDate && (
-            <View style={styles.dueDateContainer}>
+            <View className="flex-row items-center">
               {isOverdue() && <AlertTriangle size={14} color={Colors.error} />}
-              <Clock size={14} color={isOverdue() ? Colors.error : Colors.text.secondary} />
-              <Text style={[
-                styles.dueDate,
-                isOverdue() && styles.overdue
-              ]}>
+              <Clock size={14} color={isOverdue() ? Colors.error : '#6b7280'} />
+              <Text className={`text-xs ml-1 ${
+                isOverdue() ? 'text-red-600 font-medium' : 'text-gray-600'
+              }`}>
                 {formatDate(todo.dueDate)}
               </Text>
             </View>
@@ -144,101 +129,3 @@ export default function TodoCard({ todo, onToggleComplete, onEdit, onDelete }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  completedContainer: {
-    opacity: 0.7,
-  },
-  checkboxContainer: {
-    marginRight: 12,
-    paddingTop: 2,
-  },
-  content: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    flex: 1,
-    marginRight: 8,
-  },
-  completedText: {
-    textDecorationLine: 'line-through',
-    color: Colors.text.secondary,
-  },
-  actions: {
-    flexDirection: 'row',
-  },
-  actionButton: {
-    padding: 4,
-    marginLeft: 8,
-  },
-  description: {
-    fontSize: 14,
-    color: Colors.text.secondary,
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  tags: {
-    flexDirection: 'row',
-    flex: 1,
-  },
-  priorityTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
-  },
-  priorityText: {
-    fontSize: 12,
-    fontWeight: '500',
-    textTransform: 'capitalize',
-  },
-  categoryTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '500',
-    textTransform: 'capitalize',
-  },
-  dueDateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dueDate: {
-    fontSize: 12,
-    color: Colors.text.secondary,
-    marginLeft: 4,
-  },
-  overdue: {
-    color: Colors.error,
-    fontWeight: '500',
-  },
-});

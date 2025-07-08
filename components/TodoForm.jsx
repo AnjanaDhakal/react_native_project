@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
   Modal,
 } from 'react-native';
 import { X, Calendar, Flag, Tag } from 'lucide-react-native';
@@ -44,17 +43,17 @@ export default function TodoForm({ visible, onClose, onSubmit, initialTodo = nul
   }, [initialTodo, visible]);
 
   const priorities = [
-    { value: 'low', label: 'Low', color: Colors.success },
-    { value: 'medium', label: 'Medium', color: Colors.warning },
-    { value: 'high', label: 'High', color: Colors.error },
+    { value: 'low', label: 'Low', color: 'border-green-500 text-green-600' },
+    { value: 'medium', label: 'Medium', color: 'border-orange-500 text-orange-600' },
+    { value: 'high', label: 'High', color: 'border-red-500 text-red-600' },
   ];
 
   const categories = [
-    { value: 'general', label: 'General', color: Colors.primary },
-    { value: 'inventory', label: 'Inventory', color: '#3b82f6' },
-    { value: 'marketing', label: 'Marketing', color: '#8b5cf6' },
-    { value: 'orders', label: 'Orders', color: '#10b981' },
-    { value: 'finance', label: 'Finance', color: '#f59e0b' },
+    { value: 'general', label: 'General', color: 'border-green-600 text-green-600' },
+    { value: 'inventory', label: 'Inventory', color: 'border-blue-500 text-blue-600' },
+    { value: 'marketing', label: 'Marketing', color: 'border-purple-500 text-purple-600' },
+    { value: 'orders', label: 'Orders', color: 'border-green-500 text-green-600' },
+    { value: 'finance', label: 'Finance', color: 'border-yellow-500 text-yellow-600' },
   ];
 
   const validateForm = () => {
@@ -104,33 +103,37 @@ export default function TodoForm({ visible, onClose, onSubmit, initialTodo = nul
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>
+      <View className="flex-1 bg-green-50">
+        <View className="flex-row justify-between items-center px-6 pt-15 pb-5 border-b border-gray-200">
+          <Text className="text-2xl font-bold text-gray-800">
             {initialTodo ? 'Edit Todo' : 'Create New Todo'}
           </Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <X size={24} color={Colors.text.secondary} />
+          <TouchableOpacity onPress={onClose} className="p-2">
+            <X size={24} color="#6b7280" />
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.section}>
-            <Text style={styles.label}>Title *</Text>
+        <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
+          <View className="mb-6">
+            <Text className="text-base font-semibold text-gray-800 mb-2">Title *</Text>
             <TextInput
-              style={[styles.input, errors.title && styles.inputError]}
+              className={`bg-white border rounded-xl px-4 py-3 text-base text-gray-800 ${
+                errors.title ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Enter todo title"
               value={formData.title}
               onChangeText={(value) => updateFormData('title', value)}
               maxLength={100}
             />
-            {errors.title && <Text style={styles.errorText}>{errors.title}</Text>}
+            {errors.title && <Text className="text-red-600 text-sm mt-1">{errors.title}</Text>}
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.label}>Description</Text>
+          <View className="mb-6">
+            <Text className="text-base font-semibold text-gray-800 mb-2">Description</Text>
             <TextInput
-              style={[styles.textArea, errors.description && styles.inputError]}
+              className={`bg-white border rounded-xl px-4 py-3 text-base text-gray-800 min-h-[100px] ${
+                errors.description ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="Enter todo description (optional)"
               value={formData.description}
               onChangeText={(value) => updateFormData('description', value)}
@@ -139,29 +142,30 @@ export default function TodoForm({ visible, onClose, onSubmit, initialTodo = nul
               textAlignVertical="top"
               maxLength={500}
             />
-            {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
+            {errors.description && <Text className="text-red-600 text-sm mt-1">{errors.description}</Text>}
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.label}>
-              <Flag size={16} color={Colors.text.primary} /> Priority
-            </Text>
-            <View style={styles.optionsContainer}>
+          <View className="mb-6">
+            <View className="flex-row items-center mb-2">
+              <Flag size={16} color="#374151" />
+              <Text className="text-base font-semibold text-gray-800 ml-1">Priority</Text>
+            </View>
+            <View className="flex-row flex-wrap gap-2">
               {priorities.map((priority) => (
                 <TouchableOpacity
                   key={priority.value}
-                  style={[
-                    styles.optionButton,
-                    formData.priority === priority.value && styles.selectedOption,
-                    { borderColor: priority.color }
-                  ]}
+                  className={`px-4 py-2 rounded-2xl border bg-white ${
+                    formData.priority === priority.value 
+                      ? priority.color 
+                      : 'border-gray-300 text-gray-600'
+                  }`}
                   onPress={() => updateFormData('priority', priority.value)}
                 >
-                  <Text style={[
-                    styles.optionText,
-                    formData.priority === priority.value && styles.selectedOptionText,
-                    { color: formData.priority === priority.value ? priority.color : Colors.text.secondary }
-                  ]}>
+                  <Text className={`text-sm font-medium ${
+                    formData.priority === priority.value 
+                      ? priority.color.split(' ')[1] 
+                      : 'text-gray-600'
+                  }`}>
                     {priority.label}
                   </Text>
                 </TouchableOpacity>
@@ -169,26 +173,27 @@ export default function TodoForm({ visible, onClose, onSubmit, initialTodo = nul
             </View>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.label}>
-              <Tag size={16} color={Colors.text.primary} /> Category
-            </Text>
-            <View style={styles.optionsContainer}>
+          <View className="mb-6">
+            <View className="flex-row items-center mb-2">
+              <Tag size={16} color="#374151" />
+              <Text className="text-base font-semibold text-gray-800 ml-1">Category</Text>
+            </View>
+            <View className="flex-row flex-wrap gap-2">
               {categories.map((category) => (
                 <TouchableOpacity
                   key={category.value}
-                  style={[
-                    styles.optionButton,
-                    formData.category === category.value && styles.selectedOption,
-                    { borderColor: category.color }
-                  ]}
+                  className={`px-4 py-2 rounded-2xl border bg-white ${
+                    formData.category === category.value 
+                      ? category.color 
+                      : 'border-gray-300 text-gray-600'
+                  }`}
                   onPress={() => updateFormData('category', category.value)}
                 >
-                  <Text style={[
-                    styles.optionText,
-                    formData.category === category.value && styles.selectedOptionText,
-                    { color: formData.category === category.value ? category.color : Colors.text.secondary }
-                  ]}>
+                  <Text className={`text-sm font-medium ${
+                    formData.category === category.value 
+                      ? category.color.split(' ')[1] 
+                      : 'text-gray-600'
+                  }`}>
                     {category.label}
                   </Text>
                 </TouchableOpacity>
@@ -196,33 +201,36 @@ export default function TodoForm({ visible, onClose, onSubmit, initialTodo = nul
             </View>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.label}>
-              <Calendar size={16} color={Colors.text.primary} /> Due Date
-            </Text>
+          <View className="mb-6">
+            <View className="flex-row items-center mb-2">
+              <Calendar size={16} color="#374151" />
+              <Text className="text-base font-semibold text-gray-800 ml-1">Due Date</Text>
+            </View>
             <TextInput
-              style={[styles.input, errors.dueDate && styles.inputError]}
+              className={`bg-white border rounded-xl px-4 py-3 text-base text-gray-800 ${
+                errors.dueDate ? 'border-red-500' : 'border-gray-300'
+              }`}
               placeholder="YYYY-MM-DD"
               value={formData.dueDate}
               onChangeText={(value) => updateFormData('dueDate', value)}
             />
-            {errors.dueDate && <Text style={styles.errorText}>{errors.dueDate}</Text>}
-            <Text style={styles.helperText}>Leave empty for no due date</Text>
+            {errors.dueDate && <Text className="text-red-600 text-sm mt-1">{errors.dueDate}</Text>}
+            <Text className="text-gray-600 text-sm mt-1">Leave empty for no due date</Text>
           </View>
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View className="flex-row px-6 py-5 border-t border-gray-200 gap-3">
           <TouchableOpacity
-            style={styles.cancelButton}
+            className="flex-1 py-3 rounded-xl bg-white border border-gray-300"
             onPress={onClose}
           >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+            <Text className="text-center text-base font-semibold text-gray-600">Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.submitButton}
+            className="flex-1 py-3 rounded-xl bg-green-600"
             onPress={handleSubmit}
           >
-            <Text style={styles.submitButtonText}>
+            <Text className="text-center text-base font-semibold text-white">
               {initialTodo ? 'Update' : 'Create'}
             </Text>
           </TouchableOpacity>
@@ -231,133 +239,3 @@ export default function TodoForm({ visible, onClose, onSubmit, initialTodo = nul
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text.primary,
-  },
-  closeButton: {
-    padding: 8,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text.primary,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  input: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: Colors.text.primary,
-  },
-  textArea: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: Colors.text.primary,
-    minHeight: 100,
-  },
-  inputError: {
-    borderColor: Colors.error,
-  },
-  errorText: {
-    color: Colors.error,
-    fontSize: 14,
-    marginTop: 4,
-  },
-  helperText: {
-    color: Colors.text.secondary,
-    fontSize: 14,
-    marginTop: 4,
-  },
-  optionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  optionButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    backgroundColor: Colors.surface,
-  },
-  selectedOption: {
-    backgroundColor: Colors.background,
-  },
-  optionText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  selectedOptionText: {
-    fontWeight: '600',
-  },
-  footer: {
-    flexDirection: 'row',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    gap: 12,
-  },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  cancelButtonText: {
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text.secondary,
-  },
-  submitButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: Colors.primary,
-  },
-  submitButtonText: {
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-  },
-});
