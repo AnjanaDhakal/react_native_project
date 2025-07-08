@@ -56,7 +56,7 @@ export default function Analytics() {
       change: '-3%', 
       trend: 'down', 
       icon: TrendingUp 
-    },
+    }
   ];
 
   // Calculate top selling products from orders
@@ -180,7 +180,7 @@ export default function Analytics() {
                 </View>
                 <Text style={styles.productRevenue}>{product.revenue}</Text>
               </View>
-            ))}
+            ))
             )}
           </View>
         </View>
