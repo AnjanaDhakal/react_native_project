@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useStore } from '@livestore/react';
-import { store, initializeStore, storeHelpers } from '@/lib/store';
+import { store, initializeStore, storeHelpers } from '@/lib/localStore';
 
 const StoreContext = createContext({});
 
@@ -13,28 +12,13 @@ export function StoreProvider({ children }) {
       try {
         await initializeStore();
         setIsStoreReady(true);
-        
-        // Listen for sync events
-        store.on('sync:start', () => setSyncStatus('syncing'));
-        store.on('sync:success', () => setSyncStatus('online'));
-        store.on('sync:error', () => setSyncStatus('offline'));
-        
-        // Start sync if URL is configured
-        if (process.env.EXPO_PUBLIC_SYNC_URL) {
-          store.startSync();
-        }
+        setSyncStatus('offline'); // Local-first, always offline
       } catch (error) {
         console.error('Store setup failed:', error);
       }
     };
 
     setupStore();
-
-    return () => {
-      if (store) {
-        store.stopSync();
-      }
-    };
   }, []);
 
   return (
@@ -57,30 +41,58 @@ export const useStoreContext = () => {
   return context;
 };
 
+// Custom hook for reactive data
+function useReactiveQuery(table, options = {}) {
+  const [data, setData] = useState([]);
+  const { isStoreReady } = useStoreContext();
+
+  useEffect(() => {
+    if (!isStoreReady || !options.enabled) return;
+
+    const fetchData = async () => {
+      try {
+        const results = await store.query(table, options);
+        setData(results);
+      } catch (error) {
+        console.error(`Failed to fetch ${table}:`, error);
+        setData([]);
+      }
+    };
+
+    fetchData();
+
+    // Subscribe to changes
+    const unsubscribe = store.subscribe(table, () => {
+      fetchData();
+    });
+
+    return unsubscribe;
+  }, [table, isStoreReady, options.enabled, JSON.stringify(options.where)]);
+
+  return data;
+}
+
 // Custom hooks for specific data
 export const useOrders = (userId) => {
   const { isStoreReady } = useStoreContext();
-  const orders = useStore(store, 'orders', {
+  return useReactiveQuery('orders', {
     where: { userId },
     enabled: isStoreReady && !!userId
   });
-  return orders || [];
 };
 
 export const useProducts = (userId) => {
   const { isStoreReady } = useStoreContext();
-  const products = useStore(store, 'products', {
+  return useReactiveQuery('products', {
     where: { userId },
     enabled: isStoreReady && !!userId
   });
-  return products || [];
 };
 
 export const useAnalytics = (userId) => {
   const { isStoreReady } = useStoreContext();
-  const analytics = useStore(store, 'analytics', {
+  return useReactiveQuery('analytics', {
     where: { userId },
     enabled: isStoreReady && !!userId
   });
-  return analytics || [];
 };

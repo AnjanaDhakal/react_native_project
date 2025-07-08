@@ -1,82 +1,26 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useStoreContext } from '../context/StoreContext';
+import { useEffect } from 'react';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useFrameworkReady } from '@/hooks/useFrameworkReady';
+import { StoreProvider } from '@/context/StoreContext';
+import { AuthProvider } from '@/context/AuthContext';
 
-const AuthContext = createContext({});
-
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { storeHelpers, isStoreReady } = useStoreContext();
-
-  useEffect(() => {
-    // Check for existing user session from local store
-    const checkExistingSession = async () => {
-      if (!isStoreReady) return;
-      
-      try {
-        // In a real app, you'd check for stored session tokens
-        // For now, we'll just set loading to false
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Session check failed:', error);
-        setIsLoading(false);
-      }
-    };
-    
-    setTimeout(checkExistingSession, 1000);
-  }, []);
-
-  const login = async (email, password) => {
-    // Simulate login API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        setUser({
-          id: '1',
-          email,
-          name: 'John Vendor',
-          businessName: 'Green Market Store'
-        });
-        resolve({ success: true });
-      }, 1000);
-    });
-  };
-
-  const register = async (email, password, name, businessName) => {
-    // Simulate registration API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        setUser({
-          id: '1',
-          email,
-          name,
-          businessName
-        });
-        resolve({ success: true });
-      }, 1000);
-    });
-  };
-
-  const logout = () => {
-    setUser(null);
-  };
+export default function RootLayout() {
+  useFrameworkReady();
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isLoading,
-      login,
-      register,
-      logout
-    }}>
-      {children}
-    </AuthContext.Provider>
+    <StoreProvider>
+      <AuthProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="+not-found" />
+          <Stack.Screen name="(main)/dashboard" />
+          <Stack.Screen name="(main)/scanner" />
+        </Stack>
+        <StatusBar style="auto" />
+      </AuthProvider>
+    </StoreProvider>
   );
 }
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
