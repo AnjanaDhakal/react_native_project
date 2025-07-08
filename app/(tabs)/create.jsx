@@ -9,17 +9,7 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import {
-  Search,
-  Filter,
-  Plus,
-  CheckSquare,
-  Square,
-  Calendar,
-  AlertCircle,
-  Wifi,
-  WifiOff,
-} from 'lucide-react-native';
+import { Search, Filter, Plus, SquareCheck as CheckSquare, Square, Calendar, CircleAlert as AlertCircle, Wifi, WifiOff } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
 import { useTodos } from '@/context/TodoContext';
