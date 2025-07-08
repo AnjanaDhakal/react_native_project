@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { CircleCheck as CheckCircle, Circle, Clock, TriangleAlert as AlertTriangle, Edit3, Trash2 } from 'lucide-react-native';
+import { CircleCheck as CheckCircle, Circle, Clock, TriangleAlert as AlertTriangle, CreditCard as Edit3, Trash2 } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 
 export default function TodoCard({ todo, onToggleComplete, onEdit, onDelete }) {
