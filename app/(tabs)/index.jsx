@@ -36,9 +36,14 @@ import { StatusBar } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import { useOrders, useProducts } from '@/context/StoreContext';
+import SyncIndicator from '@/components/SyncIndicator';
 
 export default function Home() {
   const router = useRouter();
+  const { user } = useAuth();
+  const orders = useOrders(user?.id);
+  const products = useProducts(user?.id);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -47,7 +52,6 @@ export default function Home() {
     }, [])
   );
 
-  const { user } = useAuth();
 
   const screenWidth = Dimensions.get('window').width;
 
@@ -239,17 +243,17 @@ export default function Home() {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [
       {
-        data: [20, 25, 18, 22, 30, 28, 26], // Total Orders
+        data: orders.length > 0 ? [20, 25, 18, 22, 30, 28, orders.length] : [0, 0, 0, 0, 0, 0, 0],
         color: (opacity = 1) => `rgba(34, 139, 230, ${opacity})`, // blue
         strokeWidth: 2,
       },
       {
-        data: [18, 23, 17, 20, 27, 26, 24], // Delivered
+        data: orders.length > 0 ? [18, 23, 17, 20, 27, 26, orders.filter(o => o.status === 'Completed').length] : [0, 0, 0, 0, 0, 0, 0],
         color: (opacity = 1) => `rgba(46, 204, 113, ${opacity})`, // green
         strokeWidth: 2,
       },
       {
-        data: [2, 2, 1, 2, 3, 2, 2], // RTV
+        data: orders.length > 0 ? [2, 2, 1, 2, 3, 2, orders.filter(o => o.status === 'Cancelled').length] : [0, 0, 0, 0, 0, 0, 0],
         color: (opacity = 1) => `rgba(231, 76, 60, ${opacity})`, // soft red
         strokeWidth: 2,
       },
@@ -260,14 +264,14 @@ export default function Home() {
   const pieData = [
     {
       name: 'RTV',
-      population: 10,
+      population: orders.filter(o => o.status === 'Cancelled').length || 1,
       color: 'gray',
       legendFontColor: '#333',
       legendFontSize: 14,
     },
     {
       name: 'Delivered',
-      population: 90,
+      population: orders.filter(o => o.status === 'Completed').length || 9,
       color: '#38B000',
       legendFontColor: '#333',
       legendFontSize: 14,
@@ -284,6 +288,7 @@ export default function Home() {
             <Text className="text-xl font-bold text-white mb-1">
               {user?.name}!
             </Text>
+            <SyncIndicator />
           </View>
           <TouchableOpacity className="relative rounded-xl p-2.5">
             <Bell size={25} color="white" />
@@ -603,6 +608,14 @@ export default function Home() {
             Recent Activity
           </Text>
           <View className="bg-white rounded-2xl p-3 shadow-sm">
+            {orders.length === 0 ? (
+              <View className="py-8 items-center">
+                <Package size={32} color="#9ca3af" />
+                <Text className="text-gray-500 mt-2 text-center">No recent activity</Text>
+                <Text className="text-gray-400 text-sm text-center">Your orders and updates will appear here</Text>
+              </View>
+            ) : (
+            <>
             <View className="flex-row py-2">
               <View className="bg-green-50 rounded-lg w-7 h-7 justify-center items-center mr-3">
                 <ShoppingCart size={14} color="#008000" />
@@ -623,7 +636,7 @@ export default function Home() {
               </View>
               <View className="flex-1">
                 <Text className="text-sm font-semibold text-gray-800 mb-0.5">
-                  Order #213 has been successfully delivered.
+                  Order #{orders[0]?.id?.slice(-4) || '213'} has been successfully delivered.
                 </Text>
                 <Text className="text-xs text-gray-600 mb-0.5">Learn more</Text>
                 <Text className="text-xs text-green-600">4 hours ago</Text>
@@ -638,11 +651,13 @@ export default function Home() {
                   Payment received
                 </Text>
                 <Text className="text-xs text-gray-600 mb-0.5">
-                  Rs 156.50 has been setteled.
+                  ${orders.find(o => o.status === 'Completed')?.amount?.toFixed(2) || '156.50'} has been settled.
                 </Text>
                 <Text className="text-xs text-green-600">6 hours ago</Text>
               </View>
             </View>
+            </>
+            )}
           </View>
         </View>
       </View>

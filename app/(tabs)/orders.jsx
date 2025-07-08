@@ -2,23 +2,26 @@ import { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Filter, Package, Clock, CircleCheck as CheckCircle, Circle as XCircle } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
+import { useAuth } from '@/context/AuthContext';
+import { useOrders } from '@/context/StoreContext';
 
 export default function Orders() {
   const [activeTab, setActiveTab] = useState('all');
+  const { user } = useAuth();
+  const orders = useOrders(user?.id);
 
-  const orders = [
-    { id: '#1234', customer: 'John Doe', amount: '$89.99', status: 'Pending', date: '2024-01-15', items: 3 },
-    { id: '#1235', customer: 'Jane Smith', amount: '$156.50', status: 'Completed', date: '2024-01-15', items: 5 },
-    { id: '#1236', customer: 'Mike Johnson', amount: '$45.75', status: 'Processing', date: '2024-01-14', items: 2 },
-    { id: '#1237', customer: 'Sarah Wilson', amount: '$234.00', status: 'Cancelled', date: '2024-01-14', items: 4 },
-    { id: '#1238', customer: 'Tom Brown', amount: '$67.25', status: 'Completed', date: '2024-01-13', items: 3 },
-  ];
+  // Format orders for display
+  const formattedOrders = orders.map(order => ({
+    ...order,
+    id: `#${order.id.slice(-4)}`,
+    amount: `$${order.amount.toFixed(2)}`
+  }));
 
   const tabs = [
-    { key: 'all', label: 'All', count: orders.length },
-    { key: 'pending', label: 'Pending', count: orders.filter(o => o.status === 'Pending').length },
-    { key: 'processing', label: 'Processing', count: orders.filter(o => o.status === 'Processing').length },
-    { key: 'completed', label: 'Completed', count: orders.filter(o => o.status === 'Completed').length },
+    { key: 'all', label: 'All', count: formattedOrders.length },
+    { key: 'pending', label: 'Pending', count: formattedOrders.filter(o => o.status === 'Pending').length },
+    { key: 'processing', label: 'Processing', count: formattedOrders.filter(o => o.status === 'Processing').length },
+    { key: 'completed', label: 'Completed', count: formattedOrders.filter(o => o.status === 'Completed').length },
   ];
 
   const getStatusIcon = (status) => {
@@ -52,8 +55,8 @@ export default function Orders() {
   };
 
   const filteredOrders = activeTab === 'all' 
-    ? orders 
-    : orders.filter(order => order.status.toLowerCase() === activeTab);
+    ? formattedOrders 
+    : formattedOrders.filter(order => order.status.toLowerCase() === activeTab);
 
   return (
     <View style={styles.container}>
@@ -100,6 +103,15 @@ export default function Orders() {
       </View>
 
       <ScrollView style={styles.content}>
+        {filteredOrders.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Package size={48} color={Colors.text.light} />
+            <Text style={styles.emptyStateText}>No orders found</Text>
+            <Text style={styles.emptyStateSubtext}>
+              {activeTab === 'all' ? 'Start by creating your first order' : `No ${activeTab} orders at the moment`}
+            </Text>
+          </View>
+        ) : (
         {filteredOrders.map((order) => (
           <View key={order.id} style={styles.orderCard}>
             <View style={styles.orderHeader}>
@@ -127,6 +139,7 @@ export default function Orders() {
             </View>
           </View>
         ))}
+        )}
       </ScrollView>
     </View>
   );
@@ -288,5 +301,22 @@ const styles = StyleSheet.create({
   detailsButtonText: {
     color: Colors.primary,
     fontWeight: '500',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text.primary,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    textAlign: 'center',
   },
 });

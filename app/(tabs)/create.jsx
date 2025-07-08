@@ -2,17 +2,43 @@ import { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { Search, Filter, Plus, Package } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
+import { useAuth } from '@/context/AuthContext';
+import { useProducts, useStoreContext } from '@/context/StoreContext';
 
 export default function Products() {
   const [searchText, setSearchText] = useState('');
+  const { user } = useAuth();
+  const products = useProducts(user?.id);
+  const { storeHelpers } = useStoreContext();
 
-  const products = [
-    { id: 1, name: 'Organic Tomatoes', price: '$4.99', stock: 150, status: 'In Stock' },
-    { id: 2, name: 'Fresh Lettuce', price: '$2.99', stock: 75, status: 'In Stock' },
-    { id: 3, name: 'Green Apples', price: '$3.49', stock: 5, status: 'Low Stock' },
-    { id: 4, name: 'Carrots', price: '$1.99', stock: 0, status: 'Out of Stock' },
-    { id: 5, name: 'Bell Peppers', price: '$5.99', stock: 120, status: 'In Stock' },
-  ];
+  // Format products for display
+  const formattedProducts = products.map(product => ({
+    ...product,
+    price: `$${product.price.toFixed(2)}`
+  }));
+
+  // Filter products based on search
+  const filteredProducts = formattedProducts.filter(product =>
+    product.name.toLowerCase().includes(searchText.toLowerCase())
+  );
+
+  const handleAddProduct = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const newProduct = {
+        userId: user.id,
+        name: 'New Product',
+        price: 0.00,
+        stock: 0,
+        status: 'Out of Stock'
+      };
+      
+      await storeHelpers.createProduct(newProduct);
+    } catch (error) {
+      console.error('Failed to create product:', error);
+    }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -46,14 +72,34 @@ export default function Products() {
           <TouchableOpacity style={styles.filterButton}>
             <Filter size={20} color={Colors.text.secondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton}>
+          <TouchableOpacity style={styles.addButton} onPress={handleAddProduct}>
             <Plus size={20} color="white" />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView style={styles.content}>
-        {products.map((product) => (
+        {filteredProducts.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Package size={48} color={Colors.text.light} />
+            <Text style={styles.emptyStateText}>
+              {searchText ? 'No products found' : 'No products yet'}
+            </Text>
+            <Text style={styles.emptyStateSubtext}>
+              {searchText 
+                ? `No products match "${searchText}"`
+                : 'Start by adding your first product'
+              }
+            </Text>
+            {!searchText && (
+              <TouchableOpacity style={styles.addProductButton} onPress={handleAddProduct}>
+                <Plus size={20} color="white" />
+                <Text style={styles.addProductButtonText}>Add Product</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+        {filteredProducts.map((product) => (
           <View key={product.id} style={styles.productCard}>
             <View style={styles.productHeader}>
               <View style={styles.productInfo}>
@@ -79,6 +125,7 @@ export default function Products() {
             </View>
           </View>
         ))}
+        )}
       </ScrollView>
     </View>
   );
@@ -211,5 +258,36 @@ const styles = StyleSheet.create({
   editButtonText: {
     color: Colors.primary,
     fontWeight: '500',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text.primary,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  addProductButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  addProductButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
