@@ -5,6 +5,7 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { StoreProvider } from '@/context/StoreContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { TodoProvider } from '@/context/TodoContext';
+import '../global.css';
 
 export default function RootLayout() {
   useFrameworkReady();
