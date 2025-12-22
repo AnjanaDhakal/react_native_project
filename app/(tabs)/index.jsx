@@ -38,12 +38,16 @@ import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useOrders, useProducts } from '@/context/StoreContext';
 import SyncIndicator from '@/components/SyncIndicator';
+import { useNotifications } from '@/context/NotificationContext';
+import NotificationManager from '@/components/NotificationManager';
 
 export default function Home() {
   const router = useRouter();
   const { user } = useAuth();
   const orders = useOrders(user?.id);
   const products = useProducts(user?.id);
+  const { getUnreadCount } = useNotifications();
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -290,14 +294,19 @@ export default function Home() {
             </Text>
             <SyncIndicator />
           </View>
-          <TouchableOpacity className="relative rounded-xl p-2.5">
+          <TouchableOpacity 
+            className="relative rounded-xl p-2.5"
+            onPress={() => setShowNotifications(true)}
+          >
             <Bell size={25} color="white" />
-            <View
-              className="absolute rounded-full w-5 h-5 bg-green-300 justify-center items-center"
-              style={{ top: -4, right: -4 }}
-            >
-              <Text className="text-white text-xs font-bold">3</Text>
-            </View>
+            {getUnreadCount() > 0 && (
+              <View
+                className="absolute rounded-full w-5 h-5 bg-green-300 justify-center items-center"
+                style={{ top: -4, right: -4 }}
+              >
+                <Text className="text-white text-xs font-bold">{getUnreadCount()}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -661,6 +670,11 @@ export default function Home() {
           </View>
         </View>
       </View>
+
+      <NotificationManager
+        visible={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </ScrollView>
   );
 }
