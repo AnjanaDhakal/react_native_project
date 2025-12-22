@@ -9,10 +9,19 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourcompany.vendorapp",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"],
+        "NSUserNotificationUsageDescription": "This app uses notifications to keep you updated with important information."
+      }
     },
     "android": {
-      "permissions": ["CAMERA"]
+      "permissions": ["CAMERA"],
+      "package": "com.yourcompany.vendorapp",
+      "versionCode": 1,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -23,6 +32,15 @@
       "expo-router",
       "expo-font",
       "expo-web-browser",
+      "@react-native-firebase/app",
+      [
+        "@react-native-firebase/messaging",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
       [
         "expo-camera",
         {

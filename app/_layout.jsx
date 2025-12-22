@@ -5,6 +5,7 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { StoreProvider } from '@/context/StoreContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { TodoProvider } from '@/context/TodoContext';
+import { NotificationProvider } from '@/context/NotificationContext';
 import '../global.css';
 
 export default function RootLayout() {
@@ -13,17 +14,19 @@ export default function RootLayout() {
   return (
     <StoreProvider>
       <AuthProvider>
-        <TodoProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="login" />
-            <Stack.Screen name="register" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="+not-found" />
-            <Stack.Screen name="(main)/dashboard" />
-            <Stack.Screen name="(main)/scanner" />
-          </Stack>
-          <StatusBar style="auto" />
-        </TodoProvider>
+        <NotificationProvider>
+          <TodoProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="login" />
+              <Stack.Screen name="register" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="+not-found" />
+              <Stack.Screen name="(main)/dashboard" />
+              <Stack.Screen name="(main)/scanner" />
+            </Stack>
+            <StatusBar style="auto" />
+          </TodoProvider>
+        </NotificationProvider>
       </AuthProvider>
     </StoreProvider>
   );
